@@ -1,0 +1,6 @@
+/target
+/bindings
+/dist
+/frontent/dist
+*.pem
+setup.toml
