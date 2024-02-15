@@ -1,19 +1,11 @@
-use std::{cell::RefCell, sync::Mutex};
-
 use actix_web::{error, web, Error};
 use r2d2_sqlite::SqliteConnectionManager;
-use rusqlite::Statement;
-use serde::{Deserialize, Serialize};
+use anyhow::Result;
+
+use video_walker::video::Video;
 
 pub type Pool = r2d2::Pool<r2d2_sqlite::SqliteConnectionManager>;
-pub type Connection = r2d2::PooledConnection<r2d2_sqlite::SqliteConnectionManager>;
 
-#[derive(Debug)]
-pub struct Person {
-    id: i32,
-    name: String,
-    data: Option<Vec<u8>>,
-}
 #[derive(Clone)]
 pub struct Database {
     pool: Pool,
@@ -22,62 +14,100 @@ pub struct Database {
 impl Database {
     pub async fn new() -> Self {
         // connect to SQLite DB
-        let manager = SqliteConnectionManager::file("weather.db");
+        let manager = SqliteConnectionManager::file("videowalker.db");
         let pool = Pool::new(manager).unwrap();
         Database { pool: pool }
     }
 
-    pub async fn init(&self) {
-        let conn = self.pool.get().unwrap();
+    pub async fn init(&self) -> Result<()> {
 
+        let pool = self.pool.clone();
+
+        let conn = web::block(move || pool.get())
+            .await??;
         web::block(move || {
-            // simulate an expensive query, see comments at top of main.rs
-
             conn.execute(
-                "CREATE TABLE person (
-            id    INTEGER PRIMARY KEY,
-            name  TEXT NOT NULL,
-            data  BLOB
+                "CREATE TABLE IF NOT EXISTS videos (
+            video_id INTEGER PRIMARY KEY,
+            title TEXT NOT NULL,
+            folder_id INTEGER NOT NULL,
+            description TEXT,
+            year INTEGER,
+            collection_id INTEGER,
+            filename TEXT NOT NULL,
+            size INTEGER
         )",
                 (), // empty list of parameters.
             )
-            .unwrap();
-            let me = Person {
-                id: 0,
-                name: "Gaylord Nelson".to_string(),
-                data: None,
-            };
-            conn.execute(
-                "INSERT INTO person (name, data) VALUES (?1, ?2)",
-                (&me.name, &me.data),
-            )
-            .unwrap();
         })
-        .await
-        .unwrap();
+        .await??;
+        Ok(())
     }
 
-    pub async fn get_persons(&self) -> Vec<Person> {
+    pub async fn get_all_videos(&self) -> Result<Vec<Video>> {
         let mut result = Vec::new();
-        let conn = self.pool.get().unwrap();
-        let mut stmt = conn.prepare("SELECT id, name, data FROM person").unwrap();
 
-        let person_iter = stmt
-            .query_map([], |row| {
-                Ok(Person {
-                    id: row.get(0)?,
-                    name: row.get(1)?,
-                    data: row.get(2)?,
-                })
-            })
-            .unwrap();
+        let pool = self.pool.clone();
 
-        for person in person_iter {
-            if let Ok(pers) = person {
-                result.push(pers)
+        let conn = web::block(move || pool.get())
+            .await??;
+        web::block(move || {
+            let mut stmt = conn.prepare("SELECT * FROM videos")?;
+            let person_iter = stmt
+                .query_map([], |row| {
+                    Ok({
+                        let mut vid = Video::default();
+                        vid.video_id = row.get(0)?;
+                        vid.title = row.get(1)?;
+                        vid.folder_id = row.get(2)?;
+                        vid.description = row.get(3)?;
+                        vid.year = row.get(4)?;
+                        vid.collection_id = row.get(5)?;
+                        vid.filename = row.get(6)?;
+                        vid.size = row.get(7)?;
+                        vid
+                    })
+                })?;
+
+            for person in person_iter {
+                if let Ok(pers) = person {
+                    result.push(pers)
+                }
             }
-        }
 
-        result
+            Ok(result)
+        })
+        .await?
+    }
+
+    pub async fn insert_video(&self, video: Video)->Result<()> {
+        let conn = self.pool.get()?;
+        web::block(move || {
+            conn.execute(
+                "
+        INSERT INTO videos (
+            video_id, 
+            title, 
+            folder_id ,
+            description,
+            year,
+            collection_id,
+            filename,
+            size
+        ) VALUES (?1, ?2,?3,?4,?5,?6,?7,?8)",
+                (
+                    video.video_id,
+                    video.title,
+                    video.folder_id,
+                    video.description,
+                    video.year,
+                    video.collection_id,
+                    video.filename,
+                    video.size,
+                ),
+            )
+        })
+        .await??;
+    Ok(())
     }
 }

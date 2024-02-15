@@ -240,6 +240,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0942ffc6dcaadf03badf6e6a2d0228460359d5e34b57ccdc720b7382dfbd5ec5"
 
 [[package]]
+name = "anyhow"
+version = "1.0.79"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "080e9890a082662b09c1ad45f567faeeb47f22b5fb23895fbe1e651e718e25ca"
+
+[[package]]
 name = "autocfg"
 version = "1.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -250,10 +256,13 @@ name = "backend"
 version = "0.1.0"
 dependencies = [
  "actix-web",
+ "anyhow",
  "r2d2",
  "r2d2_sqlite",
+ "rand",
  "rusqlite",
  "serde",
+ "video-walker",
 ]
 
 [[package]]
@@ -1244,6 +1253,9 @@ checksum = "49874b5167b65d7193b8aba1567f5c7d93d001cafc34600cee003eda787e483f"
 [[package]]
 name = "video-walker"
 version = "0.1.0"
+dependencies = [
+ "serde",
+]
 
 [[package]]
 name = "wasi"

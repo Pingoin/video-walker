@@ -3,6 +3,10 @@ name = "video-walker"
 version = "0.1.0"
 edition = "2021"
 
+
+[dependencies]
+serde ={version =  "1.0.196",features = ["derive"]}
+
 [workspace]
 members = ["backend", "frontend"]
 default-members = ["backend"]

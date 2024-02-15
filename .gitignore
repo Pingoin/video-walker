@@ -4,3 +4,4 @@
 /frontent/dist
 *.pem
 setup.toml
+*.db
