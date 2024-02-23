@@ -8,5 +8,5 @@ edition = "2021"
 serde ={version =  "1.0.196",features = ["derive"]}
 
 [workspace]
-members = ["backend", "frontend"]
+members = ["backend"]
 default-members = ["backend"]

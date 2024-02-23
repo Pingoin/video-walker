@@ -1,4 +1,4 @@
-use actix_web::{error, web, Error};
+use actix_web::web;
 use r2d2_sqlite::SqliteConnectionManager;
 use anyhow::Result;
 
@@ -14,7 +14,7 @@ pub struct Database {
 impl Database {
     pub async fn new() -> Self {
         // connect to SQLite DB
-        let manager = SqliteConnectionManager::file("videowalker.db");
+        let manager = SqliteConnectionManager::memory();
         let pool = Pool::new(manager).unwrap();
         Database { pool: pool }
     }
@@ -83,9 +83,9 @@ impl Database {
     pub async fn insert_video(&self, video: Video)->Result<()> {
         let conn = self.pool.get()?;
         web::block(move || {
-            conn.execute(
+           conn.execute(
                 "
-        INSERT INTO videos (
+        INSERT OR REPLACE INTO videos (
             video_id, 
             title, 
             folder_id ,
