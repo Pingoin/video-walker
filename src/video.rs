@@ -1,6 +1,8 @@
 use serde::{Deserialize, Serialize};
+use ts_rs::TS;
 
-#[derive(Debug, Serialize, Deserialize, Default)]
+#[derive(Debug, Serialize, Deserialize, Default,Clone,TS)]
+#[ts(export)]
 pub struct Video {
     pub video_id: u64,
     pub title: String,

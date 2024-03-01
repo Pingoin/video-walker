@@ -24,7 +24,7 @@
               start
             />
 
-            Components
+            Components {{ store.$state.videos[0] }}
           </v-btn>
         </v-col>
 
@@ -62,7 +62,7 @@
               start
             />
 
-            Community
+            Community {{ store.videoCount }}
           </v-btn>
         </v-col>
       </v-row>
@@ -72,4 +72,8 @@
 
 <script setup lang="ts">
   //
+  import { useAppStore } from '@/store/app'
+
+// access the `store` variable anywhere in the component ✨
+const store = useAppStore()
 </script>

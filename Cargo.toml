@@ -6,6 +6,7 @@ edition = "2021"
 
 [dependencies]
 serde ={version =  "1.0.196",features = ["derive"]}
+ts-rs = "7.1"
 
 [workspace]
 members = ["backend"]

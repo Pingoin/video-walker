@@ -36,7 +36,7 @@ pub async fn scan_folder(
             video.title = entry.file_name().to_str().unwrap().to_string();
             video.filename = entry.file_name().to_str().unwrap().to_string();
             video.size = Some(meta.size());
-            db.insert_video(video).await?;
+            db.insert_video(video.clone(),video.video_id).await?;
         }
         println!(
             "{:?}/{:?}: {}",
