@@ -13,3 +13,11 @@ pub struct Video {
     pub filename: String,
     pub size: Option<u64>,
 }
+
+#[derive(Debug, Serialize, Deserialize, Default,Clone,TS)]
+#[ts(export)]
+pub struct Folder {
+    pub folder_id: u64,
+    pub folder_name: String,
+    pub super_folder_id: u64,
+}

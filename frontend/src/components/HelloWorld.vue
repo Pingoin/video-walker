@@ -62,7 +62,7 @@
               start
             />
 
-            Community {{ store.videoCount }}
+            Community {{ store.videoCount+"/"+store.folderCount }}
           </v-btn>
         </v-col>
       </v-row>

@@ -1,2 +1,3 @@
 import {Video} from "../../../bindings/Video";
-export type {Video};
+import {Folder} from "../../../bindings/Folder";
+export type {Video,Folder};
