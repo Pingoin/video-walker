@@ -4,12 +4,12 @@ use crate::database::Database;
 use anyhow::Result;
 use async_recursion::async_recursion;
 use tokio::fs;
-use video_walker::video::{Video,Folder};
+use video_walker::{setup_data::CollectionSetup, video::{Folder, Video}};
 
 #[async_recursion]
 pub async fn scan_folder(
     path: String,
-    collection_id: u8,
+    collection:CollectionSetup,
     folder: Folder,
     db: Database,
 ) -> Result<()> {
@@ -22,13 +22,14 @@ pub async fn scan_folder(
             let new_path = format!("{}", entry.path().to_str().unwrap());
             let new_folder=Folder{
                 folder_id:entry.ino(),
+                collection_id:collection.id,
                 folder_name:entry.file_name().to_str().unwrap().to_string(),
                 super_folder_id:folder.folder_id,
             };
             db.insert_folder(new_folder.clone(), new_folder.folder_id.clone()).await?;
             futs.push(scan_folder(
                 new_path,
-                collection_id,
+                collection.clone(),
                 new_folder,
                 db.clone(),
             ));
@@ -37,7 +38,7 @@ pub async fn scan_folder(
             
             let mut video = Video::default();
             video.folder_id = folder.folder_id;
-
+            video.collection_id=collection.id.clone();
             video.video_id = entry.ino();
             video.title = entry.file_name().to_str().unwrap().to_string();
             video.filename = entry.file_name().to_str().unwrap().to_string();
