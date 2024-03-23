@@ -1,3 +1,4 @@
+<!-- eslint-disable vue/valid-v-slot -->
 <template>
   <v-container class="fill-height">
     <v-responsive class="align-center text-center fill-height">
@@ -7,7 +8,7 @@
 
       <h1 class="text-h2 font-weight-bold">Vuetify</h1>
 
-      <div class="py-14" />
+      <div class="py-14" ></div>
 
       <v-row class="d-flex align-center justify-center">
         <v-col cols="auto">
@@ -24,8 +25,13 @@
               start
             />
 
-            Components {{ store.$state.videos[0] }}
+            Components
           </v-btn>
+          <v-data-table :items="store.videos">
+            <template v-slot:item.title="{ item }">
+                <a @click="load(item.video_id)">{{ item.title }}</a>
+            </template>
+          </v-data-table>
         </v-col>
 
         <v-col cols="auto">
@@ -73,6 +79,13 @@
 <script setup lang="ts">
   //
   import { useAppStore } from '@/store/app'
+  import axios from 'axios'
+  const load=async (id:string)=>{
+    axios.get("api/videos/path/"+id).then((res)=>{
+      alert(id+"/"+res.data)
+    })
+ 
+  }
 
 // access the `store` variable anywhere in the component ✨
 const store = useAppStore()

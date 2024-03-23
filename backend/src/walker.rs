@@ -5,6 +5,7 @@ use anyhow::Result;
 use async_recursion::async_recursion;
 use tokio::fs;
 use video_walker::{setup_data::CollectionSetup, video::{Folder, Video}};
+use base64::{engine::general_purpose::URL_SAFE, Engine as _};
 
 #[async_recursion]
 pub async fn scan_folder(
@@ -21,10 +22,10 @@ pub async fn scan_folder(
         if meta.is_dir() {
             let new_path = format!("{}", entry.path().to_str().unwrap());
             let new_folder=Folder{
-                folder_id:entry.ino(),
+                folder_id:to_base64(entry.ino()),
                 collection_id:collection.id,
                 folder_name:entry.file_name().to_str().unwrap().to_string(),
-                super_folder_id:folder.folder_id,
+                super_folder_id:folder.folder_id.clone(),
             };
             db.insert_folder(new_folder.clone(), new_folder.folder_id.clone()).await?;
             futs.push(scan_folder(
@@ -37,9 +38,9 @@ pub async fn scan_folder(
             
             
             let mut video = Video::default();
-            video.folder_id = folder.folder_id;
+            video.folder_id = folder.folder_id.clone();
             video.collection_id=collection.id.clone();
-            video.video_id = entry.ino();
+            video.video_id =to_base64(entry.ino());
             video.title = entry.file_name().to_str().unwrap().to_string();
             video.filename = entry.file_name().to_str().unwrap().to_string();
             video.size = Some(meta.size());
@@ -62,4 +63,9 @@ pub async fn scan_folder(
     }
 
     Ok(())
+}
+
+fn to_base64(input:u64)->String
+{
+    URL_SAFE.encode(input.to_be_bytes())
 }

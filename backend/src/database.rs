@@ -8,8 +8,8 @@ use video_walker::video::{Folder, FolderMember, Video};
 
 #[derive(Clone)]
 pub struct Database {
-    videos: Arc<Mutex<BTreeMap<u64, Video>>>,
-    folders: Arc<Mutex<BTreeMap<u64, Folder>>>,
+    videos: Arc<Mutex<BTreeMap<String, Video>>>,
+    folders: Arc<Mutex<BTreeMap<String, Folder>>>,
 }
 
 impl Database {
@@ -34,7 +34,7 @@ impl Database {
         .await?
     }
 
-    pub async fn insert_video(&self, video: Video, id: u64) -> Result<()> {
+    pub async fn insert_video(&self, video: Video, id: String) -> Result<()> {
         let videos = Arc::clone(&self.videos);
         web::block(move || {
             let mut videos = videos.lock().unwrap();
@@ -54,7 +54,7 @@ impl Database {
         .await?
     }
 
-    pub async fn insert_folder(&self, folder: Folder, id: u64) -> Result<()> {
+    pub async fn insert_folder(&self, folder: Folder, id: String) -> Result<()> {
         let folders = Arc::clone(&self.folders);
         web::block(move || {
             let mut folders = folders.lock().unwrap();
@@ -64,7 +64,7 @@ impl Database {
         .await?
     }
 
-    pub async fn get_video(&self, video_id:u64)->Result<Option<Video>>{
+    pub async fn get_video(&self, video_id:String)->Result<Option<Video>>{
         let videos = Arc::clone(&self.videos);
         web::block(move || {
             let videos = videos.lock().unwrap();
@@ -85,11 +85,11 @@ impl Database {
         let mut seach_folder_id = item.get_super_folder_id();
         path_items.push(item.get_name());
         web::block(move || {
-            while seach_folder_id>0{
+            while seach_folder_id.len()>0{
                 let folders = folders.lock().unwrap();
                 if let Some(f) = (*folders).get(&seach_folder_id)  {
                     path_items.push(f.folder_name.clone());
-                    seach_folder_id=f.super_folder_id;
+                    seach_folder_id=f.super_folder_id.clone();
                 }
             }
             path_items.reverse();
